@@ -1,53 +1,26 @@
-version: 2
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
 
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  run_benchmarks:
-    machine:
-      image: ubuntu-2004-cuda-11.4:202110-01
-    resource_class: gpu.nvidia.medium
+  say-hello:
+    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
+    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+    docker:
+      - image: cimg/base:stable
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
       - run:
-          name: Setup CI environment
-          command: ./scripts/setup_ci.sh
-      - run:
-          name: Install Conda
-          command: ./scripts/install_basics.sh
-      - run:
-          name: Install PyTorch nightly
-          command: ./scripts/install_nightlies.sh
-      - run:
-          name: Setup benchmark suite dependencies
-          command: . ~/miniconda3/etc/profile.d/conda.sh; conda activate base; python install.py --test-mode
-      - run:
-          name: Validate benchmark components
-          command: |
-            . ~/miniconda3/etc/profile.d/conda.sh; conda activate base; python -m components.test.test_subprocess; python -m components.test.test_worker
-      - run:
-          name: Validate benchmark components (PyTest)
-          command: |
-            . ~/miniconda3/etc/profile.d/conda.sh; conda activate base; pytest --ignore_machine_config components/test/*.py
-      - run:
-          name: Validate training benchmark suite
-          command: . ~/miniconda3/etc/profile.d/conda.sh; conda activate base; python test.py
-          no_output_timeout: "60m"
-      - run:
-          name: Validate pytest-benchmark invocation of training suite
-          command: ./scripts/run_bench_and_upload.sh
-          no_output_timeout: "60m"
+          name: "Say hello"
+          command: "echo Hello, World!"
 
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  version: 2
-  workflow-build:
+  say-hello-workflow:
     jobs:
-      - run_benchmarks
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 0,12 * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - run_benchmarks
+      - say-hello
